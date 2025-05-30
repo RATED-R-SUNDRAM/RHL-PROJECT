@@ -1,12 +1,10 @@
+streamlit==1.45.1
 langchain==0.3.1
 langchain-community==0.3.1
 langchain-openai==0.2.1
 langchain-groq==0.2.0
-langchain-pinecone==0.2.0
+langchain-pinecone==0.2.6  # Updated from 0.2.0 to 0.2.6 (compatible with Python 3.13)
+sentence-transformers==3.2.1
+torch==2.4.1  # Compatible with Python 3.13
+torchvision==0.19.1  # Downgraded to a version compatible with torch==2.4.1 and Python 3.13
 pinecone-client==5.0.1
-streamlit==1.39.0
-python-dotenv==1.0.1
-pypdf==5.0.1
-sentence-transformers==3.1.1
-torch==2.5.0
-torchvision==0.20.0
