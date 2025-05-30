@@ -16,9 +16,14 @@ import streamlit as st
 
 
 load_dotenv()
-pinecone_api_key = os.getenv("PINECONE_API_KEY")
-openai_api_key = os.getenv("OPENAI_API_KEY")
-
+# pinecone_api_key = os.getenv("PINECONE_API_KEY")
+# openai_api_key = os.getenv("OPENAI_API_KEY")
+# grok_api_key = os.getenv("GROK_API_KEY")
+# print(f"grok_api_key : {grok_api_key}")
+pinecone_api_key = st.secrets["PINECONE_API_KEY"]
+openai_api_key = st.secrets["OPENAI_API_KEY"]
+grok_api_key = st.secrets["GROK_API_KEY"]
+print(f"grok_api_key : {grok_api_key}")
 """ VARIABLES """
 embedding_oai = OpenAIEmbeddings(model =  'text-embedding-3-large',dimensions= 784, openai_api_key=os.getenv("OPENAI_API_KEY"))
 
