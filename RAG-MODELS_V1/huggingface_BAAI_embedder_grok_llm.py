@@ -19,7 +19,7 @@ grok_api_key = os.getenv("GROK_API_KEY")
 print(f"grok_api_key : {grok_api_key}")
 
 """ VARIABLES """
-embedding_model_name = "BAAI/bge-small-en-v1.5" 
+embedding_model_name = "BAAI/bge-en-icl" 
 embedding_hf = HuggingFaceEmbeddings(model_name=embedding_model_name)
 grok_api = grok_api_key
 llm = ChatOpenAI(

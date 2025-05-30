@@ -13,7 +13,8 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain.prompts import PromptTemplate 
 import streamlit as st 
 from langchain_groq import ChatGroq
-from langchain_openai import ChatOpenAI 
+from langchain_openai import ChatOpenAI
+from langchain_community.embeddings import HuggingFaceEmbeddings  
 
 load_dotenv()
 pinecone_api_key = os.getenv("PINECONE_API_KEY")
@@ -22,7 +23,8 @@ grok_api_key = os.getenv("GROK_API_KEY")
 print(f"grok_api_key : {grok_api_key}")
 
 """ VARIABLES """
-embedding_hf = OllamaEmbeddings(model="snowflake-arctic-embed")  # Changed to Snowflake Arctic Embed
+embedding_hf = OllamaEmbeddings(model="snowflake-arctic-embed")
+#embedding_hf = HuggingFaceEmbeddings(model_name="Snowflake/snowflake-arctic-embed-m")  # Changed to Snowflake Arctic Embed
 grok_api= grok_api_key
 llm = ChatOpenAI(
     model="grok-3-latest",
@@ -36,14 +38,14 @@ llm = ChatOpenAI(
 )
 
 """ PDF LOADER """
-# loader = PyPDFLoader('./29_jan_morning.pdf')
-# doc = loader.load()
+loader = PyPDFLoader('./29_jan_morning.pdf')
+doc = loader.load()
 
-# """ SPLITTING DOCUMENTS INTO TEXTS """
-# text_splitter = RecursiveCharacterTextSplitter(chunk_size=1200, chunk_overlap=120)
-# split = text_splitter.split_documents(doc)
-# print(f"Type of split : {type(split)}")
-# print(f"Length of split : {len(split)}")
+""" SPLITTING DOCUMENTS INTO TEXTS """
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1200, chunk_overlap=120)
+split = text_splitter.split_documents(doc)
+print(f"Type of split : {type(split)}")
+print(f"Length of split : {len(split)}")
 
 """ VECTOR DATABASE SETUP """
 pc = Pinecone(api_key=pinecone_api_key)
@@ -51,19 +53,19 @@ embedding_dimension = 768  # Updated to match nomic-embed-text's dimension (prev
 
 index_name = "rhl-project-new2"
 
-# # Check if index exists, and create it with the correct dimension if it doesn't
-# if index_name not in pc.list_indexes().names():
-#     pc.create_index(
-#         name=index_name,
-#         metric="cosine",
-#         dimension=embedding_dimension,
-#         spec=ServerlessSpec(cloud="aws", region="us-east-1")
-#     )
+# Check if index exists, and create it with the correct dimension if it doesn't
+if index_name not in pc.list_indexes().names():
+    pc.create_index(
+        name=index_name,
+        metric="cosine",
+        dimension=embedding_dimension,
+        spec=ServerlessSpec(cloud="aws", region="us-east-1")
+    )
 
 vector_store = PineconeVectorStore(index_name=index_name, embedding=embedding_hf, pinecone_api_key=pinecone_api_key)
 print("connection to Pinecone Established !!!!")
-# vector_store.add_documents(split)  # Uncomment to add documents
-# print("data added to database !!!")
+vector_store.add_documents(split)  # Uncomment to add documents
+print("data added to database !!!")
 
 """ MODEL AND RETRIEVER """
 retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 4})
