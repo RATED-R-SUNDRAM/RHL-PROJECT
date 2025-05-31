@@ -1,3 +1,4 @@
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.embeddings import OllamaEmbeddings  # Updated import for Ollama
 from langchain_pinecone import PineconeVectorStore 
 from pinecone import Pinecone, ServerlessSpec 
