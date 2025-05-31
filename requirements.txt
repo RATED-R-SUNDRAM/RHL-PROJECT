@@ -1,13 +1,12 @@
+langchain==0.3.0
+langchain-community==0.3.0
+langchain-pinecone==0.2.0
+pinecone-client==3.2.2  # Downgrade to compatible version
+python-dotenv==1.0.1
+pypdf==5.0.1
 streamlit==1.39.0
-langchain==0.3.1
-langchain-community==0.3.1
-langchain-openai==0.2.1
 langchain-groq==0.2.0
-langchain-pinecone==0.2.6
-pinecone-client==5.0.1
+langchain-openai==0.2.1
 sentence-transformers==3.1.1
 torch==2.6.0
 torchvision==0.21.0
-sentence-transformers==3.1.1
-python-dotenv==1.0.1
-pypdf==5.0.1
