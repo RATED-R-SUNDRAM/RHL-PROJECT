@@ -39,16 +39,16 @@ llm = ChatOpenAI(
 )
 
 """ PDF LOADER """
-loader = PyPDFLoader('./29_jan_morning.pdf')
-doc = loader.load()
+# loader = PyPDFLoader('./29_jan_morning.pdf')
+# doc = loader.load()
 
-""" SPLITTING DOCUMENTS INTO TEXTS """
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=1200, chunk_overlap=120)
-split = text_splitter.split_documents(doc)
-print(f"Type of split : {type(split)}")
-print(f"Length of split : {len(split)}")
+# """ SPLITTING DOCUMENTS INTO TEXTS """
+# text_splitter = RecursiveCharacterTextSplitter(chunk_size=1200, chunk_overlap=120)
+# split = text_splitter.split_documents(doc)
+# print(f"Type of split : {type(split)}")
+# print(f"Length of split : {len(split)}")
 
-""" VECTOR DATABASE SETUP """
+# """ VECTOR DATABASE SETUP """
 pc = Pinecone(api_key=pinecone_api_key)
 embedding_dimension = 768  # Updated to match nomic-embed-text's dimension (previously 784)
 
