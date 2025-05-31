@@ -75,7 +75,7 @@ print("TEST 2")
 retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 4})
 
 print("TEST 3")
-arr = retriever.invoke('what are indications for Continuous positive airway pressure?')
+# arr = retriever.invoke('what are indications for Continuous positive airway pressure?')
 # print(f"arr", arr)
 # for i in arr:
 #     print(i.page_content)
