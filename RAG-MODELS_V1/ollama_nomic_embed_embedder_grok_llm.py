@@ -25,7 +25,10 @@ print(f"grok_api_key : {grok_api_key}")
 
 """ VARIABLES """
 # Replace OpenAI embeddings with Ollama embeddings
-embedding_oai = OllamaEmbeddings(model="nomic-embed-text")  # Use nomic-embed-text model
+#embedding_oai = OllamaEmbeddings(model="nomic-embed-text")  # Use nomic-embed-text model
+
+embedding_model_name = "nomic-ai/nomic-embed-text-v1"  # HuggingFace equivalent of Ollama's nomic-embed-text
+embedding_hf = HuggingFaceEmbeddings(model_name=embedding_model_name)
 
 llm = ChatOpenAI(
     model="grok-3-latest",
