@@ -23,7 +23,7 @@ embedding_hf = HuggingFaceEmbeddings(model_name=embedding_model_name, model_kwar
 # Rest of your code remains unchanged...
 
 load_dotenv()
-pinecone_api_key = st.secrets["PINECONE_API_KEY"]
+pinecone_api_key = st.secrets["PINECONE_API_KEY2"]
 openai_api_key = st.secrets["OPENAI_API_KEY"]
 grok_api_key = st.secrets["GROK_API_KEY"]
 print(f"grok_api_key : {grok_api_key}")
