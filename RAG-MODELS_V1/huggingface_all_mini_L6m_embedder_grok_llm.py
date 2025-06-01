@@ -17,14 +17,14 @@ from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI 
 
 load_dotenv()
-# pinecone_api_key = os.getenv("PINECONE_API_KEY")
-# openai_api_key = os.getenv("OPENAI_API_KEY")
-# grok_api_key = os.getenv("GROK_API_KEY")
-# print(f"grok_api_key : {grok_api_key}")
-pinecone_api_key = st.secrets["PINECONE_API_KEY"]
-openai_api_key = st.secrets["OPENAI_API_KEY"]
-grok_api_key = st.secrets["GROK_API_KEY"]
+pinecone_api_key = os.getenv("PINECONE_API_KEY")
+openai_api_key = os.getenv("OPENAI_API_KEY")
+grok_api_key = os.getenv("GROK_API_KEY")
 print(f"grok_api_key : {grok_api_key}")
+# pinecone_api_key = st.secrets["PINECONE_API_KEY"]
+# openai_api_key = st.secrets["OPENAI_API_KEY"]
+# grok_api_key = st.secrets["GROK_API_KEY"]
+# print(f"grok_api_key : {grok_api_key}")
 
 
 """ VARIABLES """

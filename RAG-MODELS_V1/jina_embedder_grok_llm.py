@@ -1,7 +1,9 @@
 """ IMPORTS AND ENV VAR """
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma  # Changed to Chroma
+from langchain_community.embeddings import OllamaEmbeddings  # Changed to OllamaEmbeddings
+from langchain_community.vectorstores import Chroma
 import os 
+from langchain_pinecone import PineconeVectorStore 
+from pinecone import Pinecone, ServerlessSpec 
 from dotenv import load_dotenv 
 from langchain.schema import Document 
 from langchain.text_splitter import RecursiveCharacterTextSplitter 
@@ -11,10 +13,12 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain.prompts import PromptTemplate 
 import streamlit as st 
 from langchain_groq import ChatGroq
-from langchain_openai import ChatOpenAI 
+from langchain_openai import ChatOpenAI
+from langchain_community.embeddings import HuggingFaceEmbeddings  
 
 load_dotenv()
 # Removed pinecone_api_key since Chroma doesn't need it
+pinecone_api_key = os.getenv("PINECONE_API_KEY2")
 openai_api_key = os.getenv("OPENAI_API_KEY")
 grok_api_key = os.getenv("GROK_API_KEY")
 print(f"grok_api_key : {grok_api_key}")
@@ -22,7 +26,7 @@ print(f"grok_api_key : {grok_api_key}")
 """ VARIABLES """
 embedding_model_name = "jinaai/jina-embeddings-v2-small-en"
 embedding_hf = HuggingFaceEmbeddings(model_name=embedding_model_name)
-grok_api = grok_api_key
+grok_api= grok_api_key
 llm = ChatOpenAI(
     model="grok-3-latest",
     temperature=0.2,
@@ -41,35 +45,28 @@ llm = ChatOpenAI(
 # """ SPLITTING DOCUMENTS INTO TEXTS """
 # text_splitter = RecursiveCharacterTextSplitter(chunk_size=1200, chunk_overlap=120)
 # split = text_splitter.split_documents(doc)
+# print(f"Type of split : {type(split)}")
+# print(f"Length of split : {len(split)}")
 
 """ VECTOR DATABASE SETUP """
-# Removed Pinecone setup (no index creation or API key needed)
-# Chroma stores embeddings locally in the specified directory
-persist_directory = "./chroma_db"  # Directory to store the Chroma database
+pc = Pinecone(api_key=pinecone_api_key)
+embedding_dimension = 512  # Updated to match nomic-embed-text's dimension (previously 784)
 
-persist_directory = "./chroma_db"
-collection_name = "rhl-project-jina2"
+index_name = "rhl-project-jina"
 
-# Initialize or load Chroma vector store
-if os.path.exists(persist_directory):
-    print("Loading existing Chroma vector store...")
-    vector_store = Chroma(
-        persist_directory=persist_directory,
-        embedding_function=embedding_hf,
-        collection_name=collection_name,
+# Check if index exists, and create it with the correct dimension if it doesn't
+if index_name not in pc.list_indexes().names():
+    pc.create_index(
+        name=index_name,
+        metric="cosine",
+        dimension=embedding_dimension,
+        spec=ServerlessSpec(cloud="aws", region="us-east-1")
     )
-else:
-    print("Creating new Chroma vector store...")
-    vector_store = Chroma.from_documents(
-        documents=split,
-        embedding=embedding_hf,
-        persist_directory=persist_directory,
-        collection_name=collection_name
-    )
-print("Chroma vector store initialized and documents added !!!!")
 
-# Persist the database to disk
-vector_store.persist()
+vector_store = PineconeVectorStore(index_name=index_name, embedding=embedding_hf, pinecone_api_key=pinecone_api_key)
+print("connection to Pinecone Established !!!!")
+# vector_store.add_documents(split)  # Uncomment to add documents
+# print("data added to database !!!")
 
 # """ MODEL AND RETRIEVER """
 retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 4})

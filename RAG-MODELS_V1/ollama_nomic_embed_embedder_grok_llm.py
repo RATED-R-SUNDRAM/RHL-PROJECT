@@ -14,14 +14,14 @@ from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI 
 
 load_dotenv()
-# pinecone_api_key = os.getenv("PINECONE_API_KEY")
-# openai_api_key = os.getenv("OPENAI_API_KEY")
-# grok_api_key = os.getenv("GROK_API_KEY")
-# print(f"grok_api_key : {grok_api_key}")
-pinecone_api_key = st.secrets["PINECONE_API_KEY"]
-openai_api_key = st.secrets["OPENAI_API_KEY"]
-grok_api_key = st.secrets["GROK_API_KEY"]
+pinecone_api_key = os.getenv("PINECONE_API_KEY")
+openai_api_key = os.getenv("OPENAI_API_KEY")
+grok_api_key = os.getenv("GROK_API_KEY")
 print(f"grok_api_key : {grok_api_key}")
+# pinecone_api_key = st.secrets["PINECONE_API_KEY"]
+# openai_api_key = st.secrets["OPENAI_API_KEY"]
+# grok_api_key = st.secrets["GROK_API_KEY"]
+# print(f"grok_api_key : {grok_api_key}")
 
 """ VARIABLES """
 # Replace OpenAI embeddings with Ollama embeddings
@@ -38,15 +38,15 @@ llm = ChatOpenAI(
     default_headers={"Authorization": f"Bearer {grok_api_key}"}
 )
 
-""" PDF LOADER """
-loader = PyPDFLoader('./29_jan_morning.pdf')
-doc = loader.load()
+# """ PDF LOADER """
+# loader = PyPDFLoader('./29_jan_morning.pdf')
+# doc = loader.load()
 
-""" SPLITTING DOCUMENTS INTO TEXTS """
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=1200, chunk_overlap=120)
-split = text_splitter.split_documents(doc)
-print(f"Type of split : {type(split)}")
-print(f"Length of split : {len(split)}")
+# """ SPLITTING DOCUMENTS INTO TEXTS """
+# text_splitter = RecursiveCharacterTextSplitter(chunk_size=1200, chunk_overlap=120)
+# split = text_splitter.split_documents(doc)
+# print(f"Type of split : {type(split)}")
+# print(f"Length of split : {len(split)}")
 
 """ VECTOR DATABASE SETUP """
 pc = Pinecone(api_key=pinecone_api_key)
