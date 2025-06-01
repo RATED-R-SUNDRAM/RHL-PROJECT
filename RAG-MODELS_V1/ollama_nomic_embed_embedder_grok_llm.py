@@ -1,3 +1,4 @@
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.embeddings import OllamaEmbeddings  # Updated import for Ollama
 from langchain_pinecone import PineconeVectorStore 
 from pinecone import Pinecone, ServerlessSpec 
@@ -25,7 +26,10 @@ print(f"grok_api_key : {grok_api_key}")
 
 """ VARIABLES """
 # Replace OpenAI embeddings with Ollama embeddings
-embedding_oai = OllamaEmbeddings(model="nomic-embed-text")  # Use nomic-embed-text model
+#embedding_oai = OllamaEmbeddings(model="nomic-embed-text")  # Use nomic-embed-text model
+
+embedding_model_name = "nomic-ai/nomic-embed-text-v1"  # HuggingFace equivalent of Ollama's nomic-embed-text
+embedding_hf = HuggingFaceEmbeddings(model_name=embedding_model_name)
 
 llm = ChatOpenAI(
     model="grok-3-latest",
@@ -38,7 +42,9 @@ llm = ChatOpenAI(
     default_headers={"Authorization": f"Bearer {grok_api_key}"}
 )
 
+
 # """ PDF LOADER """
+
 # loader = PyPDFLoader('./29_jan_morning.pdf')
 # doc = loader.load()
 
@@ -48,7 +54,7 @@ llm = ChatOpenAI(
 # print(f"Type of split : {type(split)}")
 # print(f"Length of split : {len(split)}")
 
-""" VECTOR DATABASE SETUP """
+# """ VECTOR DATABASE SETUP """
 pc = Pinecone(api_key=pinecone_api_key)
 embedding_dimension = 768  # Updated to match nomic-embed-text's dimension (previously 784)
 
@@ -75,7 +81,7 @@ print("TEST 2")
 retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 4})
 
 print("TEST 3")
-arr = retriever.invoke('what are indications for Continuous positive airway pressure?')
+# arr = retriever.invoke('what are indications for Continuous positive airway pressure?')
 # print(f"arr", arr)
 # for i in arr:
 #     print(i.page_content)
