@@ -1,5 +1,5 @@
 """ IMPORTS AND ENV VAR """
-from langchain_community.embeddings import HuggingFaceEmbeddings  
+from langchain_huggingface import HuggingFaceEmbeddings  # Updated import
 from langchain_pinecone import PineconeVectorStore 
 from pinecone import Pinecone, ServerlessSpec 
 from dotenv import load_dotenv 
@@ -13,7 +13,14 @@ from pydantic import BaseModel, Field
 from typing import Literal 
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 import streamlit as st
-import os
+
+# Rest of your imports and setup...
+
+""" VARIABLES AND LLM SETUP """
+embedding_model_name = "sentence-transformers/all-MiniLM-L6-v2"
+embedding_hf = HuggingFaceEmbeddings(model_name=embedding_model_name, model_kwargs={"device": "cpu"})  # Updated with device='cpu'
+
+# Rest of your code remains unchanged...
 
 load_dotenv()
 pinecone_api_key = st.secrets["PINECONE_API_KEY2"]
@@ -26,9 +33,9 @@ print(f"grok_api_key : {grok_api_key}")
 # grok_api_key = os.getenv("GROK_API_KEY")
 # print(f"grok_api_key : {grok_api_key}")
 
-""" VARIABLES AND LLM SETUP """
-embedding_model_name = "sentence-transformers/all-MiniLM-L6-v2"
-embedding_hf = HuggingFaceEmbeddings(model_name=embedding_model_name)
+# """ VARIABLES AND LLM SETUP """
+# embedding_model_name = "sentence-transformers/all-MiniLM-L6-v2"
+# embedding_hf = HuggingFaceEmbeddings(model_name=embedding_model_name)
 
 # Define all LLMs once
 base_llm_config = {
