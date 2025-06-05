@@ -28,9 +28,12 @@ print(f"grok_api_key : {grok_api_key}")
 # Replace OpenAI embeddings with Ollama embeddings
 #embedding_oai = OllamaEmbeddings(model="nomic-embed-text")  # Use nomic-embed-text model
 
-embedding_model_name = "nomic-ai/nomic-embed-text-v1"  # HuggingFace equivalent of Ollama's nomic-embed-text
-embedding_hf = HuggingFaceEmbeddings(model_name=embedding_model_name)
-
+""" VARIABLES """
+embedding_model_name = "nomic-ai/nomic-embed-text-v1"
+embedding_hf = HuggingFaceEmbeddings(
+    model_name=embedding_model_name,
+    model_kwargs={"trust_remote_code": True}  # Add this to allow remote code
+)
 llm = ChatOpenAI(
     model="grok-3-latest",
     temperature=0.2,
@@ -42,25 +45,11 @@ llm = ChatOpenAI(
     default_headers={"Authorization": f"Bearer {grok_api_key}"}
 )
 
-
-# """ PDF LOADER """
-
-# loader = PyPDFLoader('./29_jan_morning.pdf')
-# doc = loader.load()
-
-# """ SPLITTING DOCUMENTS INTO TEXTS """
-# text_splitter = RecursiveCharacterTextSplitter(chunk_size=1200, chunk_overlap=120)
-# split = text_splitter.split_documents(doc)
-# print(f"Type of split : {type(split)}")
-# print(f"Length of split : {len(split)}")
-
-# """ VECTOR DATABASE SETUP """
+""" VECTOR DATABASE SETUP """
 pc = Pinecone(api_key=pinecone_api_key)
-embedding_dimension = 768  # Updated to match nomic-embed-text's dimension (previously 784)
+embedding_dimension = len(embedding_hf.embed_query("test")) 
+index_name = "ollama-nomic-embedder-grok-llm"
 
-index_name = "rhl-project-4"
-
-# Check if index exists, and create it with the correct dimension if it doesn't
 if index_name not in pc.list_indexes().names():
     pc.create_index(
         name=index_name,
@@ -69,8 +58,31 @@ if index_name not in pc.list_indexes().names():
         spec=ServerlessSpec(cloud="aws", region="us-east-1")
     )
 
-vector_store = PineconeVectorStore(index_name=index_name, embedding=embedding_oai, pinecone_api_key=pinecone_api_key)
-print("connection to Pinecone Established !!!!")
+vector_store = PineconeVectorStore(index_name=index_name, embedding=embedding_hf, pinecone_api_key=pinecone_api_key)
+print("Connection to Pinecone Established !!!!")
+
+# Uncomment to load PDFs
+# """ VECTOR DATABASE SETUP """
+
+# for i in os.listdir("./FILES"):
+#     if i.endswith(".pdf"):
+#         print(f"Loading {i}...")
+#         loader = PyPDFLoader(f'./FILES/{i}')
+#         doc = loader.load()
+#         print(f"Splitting {i}...")
+#         text_splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=60)
+#         split = text_splitter.split_documents(doc)
+#         print(f"Adding {i} to database...")
+        
+#         # Batch the upload (e.g., 50 documents per batch)
+#         batch_size = 50
+#         for j in range(0, len(split), batch_size):
+#             batch = split[j:j + batch_size]
+#             vector_store.add_documents(batch)
+#             print(f"Uploaded batch {j // batch_size + 1} for {i}")
+        
+#         print(f"{i} added to database !!!")
+
 
 print("TEST 1")
 # vector_store.add_documents(split)  # Uncomment to add documents
@@ -92,7 +104,19 @@ print("TEST 3")
 
 prompt = PromptTemplate(
     input_variables=["context", "question"],
-    template="You are a helpful assistant answering an exam question. Use only this information: {context}\nDo not use external knowledge. Do not mention, describe, or reference the information's content, focus, or origin in your response. Answer this question in ~100 words only if the information is directly relevant: `{question}`\nIf the question is unrelated, reply only: 'I have no information on this topic'. Do not explain why the question is unrelated.""You are a helpful assistant answering an exam question. Use only this information: {context}\nDo not use any external knowledge or mention where the information comes from. Answer this question in ~100 words if the information is relevant: `{question}`\nIf the question is unrelated, reply only: 'I have no information on this topic'."
+    template="""Please find the context: {context} and question: {question} 
+You are a document-based AI assistant. Your sole function is to provide information contained within the files provided in the Document store and its respective chunks. Confine your responses strictly to the data available in the documents. Avoid fetching data from external sources.
+
+Response Instructions:
+1. If a query cannot be answered based on the information in the documents, respond clearly that it is out of scope. Do not generate content or search for data beyond the provided documents.
+1.1 Never in any circumstance refer to any other source other than the content provided in the documents.
+1.2 Answer as if you're a professional medical advisor, base your response on the information provided in the documents but dont mention this in the answer.
+2. When the query is relevant but unclear, ask up to two follow-up questions, offering a maximum of three concise options (5 words or less each) only if necessary, preferably skip if not useful.
+3. Paraphrase, summarize, and offer different response formats while maintaining factual accuracy.
+4. Limit responses to necessary word limit . Use a helpful and compassionate tone.
+5. Handle greetings appropriately.
+6. Answer "Yes/No" or in a "Small paragraph" format based on the user's request. If unable to understand the query after two attempts, respond with "null."
+7. Do not use special characters while providing the content."""
 )
 parser = StrOutputParser()
 
@@ -106,19 +130,51 @@ parallel_chain = RunnableParallel({
 
 chain = parallel_chain | prompt | llm | parser
 
-""" UI """
-st.header("LangChain OLLAMA EMBEDDER GROk AI")
-st.markdown("""
-Welcome! This tool answers medical-related questions using context from the uploaded PDF.
-Just type your question below and click *Submit*.
-""")
-user_input = st.text_input("Enter a prompt")
+arr= ['Can you tell me the indications of magnesium sulfate administration in pregnant women for fetal neuroprotection?',
+'Can you tell me the indications for CPAP in a newborn?',
+'When is administration of antenatal corticosteroid therapy for pregnant women recommended? What is the importance of antenatal corticosteroid therapy?',
+'What is the recommendation of plastic wrapping for prevention of hypothermia in preterm neonates?',
+'What is the dose of vitamin K that should be given as essential newborn care at birth for preterm baby. I mean do we give the same dose of vitamin K for term and preterm neonates?',
+'A lactating mother has one sided breast redness, pain, and swelling. Can she continue breastfeeding her newborn baby?',
+'A 3 days old newborn presented with failure to suck the breast otherwise unremarkable. I was wondering if I should start antibiotics for suspected sepsis?',
+'A 2 days old neonate who has yellowish discoloration of the skin brought to our hospital. How do I treat him?',
+'My newborn baby has purulent discharge from the eyes. Is it serious? What should I do?',
+'When should I bath my newborn baby?',
+'A mother who gave birth 2 days ago has difficulty providing adequate amount of expressed breast milk to her newborn. How should I proceed on supporting and feeding the newborn?',
+'In our setup, we don’t have a readymade 10% dextrose IV fluid; but we have 40% and 5% dextrose. How can I prepare the required amount of 10% dextrose from the available fluids']
 
-if st.button("Generate"):
-    response = chain.invoke(user_input)
-    st.write(f"RESPONSE : {response}")
-    st.write()
-    st.write()
-    st.write(f"========THE RELEVANT TEXT RETRIEVED FOR THIS PROMPTS ARE ===================:")
-    st.write(agg_func(retriever.invoke(user_input)))
+# for i in arr:
+#     result = chain.invoke(i)
+    
+#     print("==========================================")
+#     print(f"QUERY IS {i}")
+#     print()
+#     print(f"RESPONSE IS {result}")
+#     print()
+#     print()
+retriever2 = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 2})
+for i in arr :
+    print("=======================================================================================")
+    docs = retriever2.invoke(i)
+    print(len(docs))
+    print("/n".join(a.page_content for a in docs))
+
+
+
+
+# """ UI """
+# st.header("LangChain OLLAMA EMBEDDER GROk AI")
+# st.markdown("""
+# Welcome! This tool answers medical-related questions using context from the uploaded PDF.
+# Just type your question below and click *Submit*.
+# """)
+# user_input = st.text_input("Enter a prompt")
+
+# if st.button("Generate"):
+#     response = chain.invoke(user_input)
+#     st.write(f"RESPONSE : {response}")
+#     st.write()
+#     st.write()
+#     st.write(f"========THE RELEVANT TEXT RETRIEVED FOR THIS PROMPTS ARE ===================:")
+#     st.write(agg_func(retriever.invoke(user_input)))
 

@@ -17,7 +17,7 @@ from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI 
 
 load_dotenv()
-pinecone_api_key = os.getenv("PINECONE_API_KEY")
+pinecone_api_key = os.getenv("PINECONE_API_KEY2")
 openai_api_key = os.getenv("OPENAI_API_KEY")
 grok_api_key = os.getenv("GROK_API_KEY")
 print(f"grok_api_key : {grok_api_key}")
@@ -65,7 +65,7 @@ llm = ChatOpenAI(
 # Initialize Pinecone client (optional, only if you need to manage indexes directly)
 pc = Pinecone(api_key=pinecone_api_key)
 # embedding_dimension = 784
-index_name = "rhl-project-2"
+index_name = "chat-models-v1-all-minilm-l6"
 # embedding_dimension = len(embedding_hf.embed_query("Hello world"))
 # pc.create_index(
 #     name=index_name,
@@ -112,6 +112,38 @@ parallel_chain = RunnableParallel({
 
 chain = parallel_chain | prompt | llm | parser
 
+arr= ['Can you tell me the indications of magnesium sulfate administration in pregnant women for fetal neuroprotection?',
+'Can you tell me the indications for CPAP in a newborn?',
+'When is administration of antenatal corticosteroid therapy for pregnant women recommended? What is the importance of antenatal corticosteroid therapy?',
+'What is the recommendation of plastic wrapping for prevention of hypothermia in preterm neonates?',
+'What is the dose of vitamin K that should be given as essential newborn care at birth for preterm baby. I mean do we give the same dose of vitamin K for term and preterm neonates?',
+'A lactating mother has one sided breast redness, pain, and swelling. Can she continue breastfeeding her newborn baby?',
+'A 3 days old newborn presented with failure to suck the breast otherwise unremarkable. I was wondering if I should start antibiotics for suspected sepsis?',
+'A 2 days old neonate who has yellowish discoloration of the skin brought to our hospital. How do I treat him?',
+'My newborn baby has purulent discharge from the eyes. Is it serious? What should I do?',
+'When should I bath my newborn baby?',
+'A mother who gave birth 2 days ago has difficulty providing adequate amount of expressed breast milk to her newborn. How should I proceed on supporting and feeding the newborn?',
+'In our setup, we don’t have a readymade 10% dextrose IV fluid; but we have 40% and 5% dextrose. How can I prepare the required amount of 10% dextrose from the available fluids']
+
+# for i in arr:
+#     result = chain.invoke(i)
+    
+#     print("==========================================")
+#     print(f"QUERY IS {i}")
+#     print()
+#     print(f"RESPONSE IS {result}")
+#     print()
+#     print()
+retriever2 = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 2})
+for i in arr :
+    print("=======================================================================================")
+    print(i)
+    print()
+    docs = retriever2.invoke(i)
+    print(len(docs))
+    print("/n".join(a.page_content for a in docs))
+
+
 # while(True):
 #     query = input("Enter your query : ")
 #     result = chain.invoke(query)
@@ -120,18 +152,18 @@ chain = parallel_chain | prompt | llm | parser
 # """ UI  """
 
 
-st.header("LangChain HUGGINGFACE(sentence-transformers/all-MiniLM-L6-v2) EMBEDDER GROK Demo")
-st.markdown("""
-Welcome! This tool answers medical-related questions using context from the uploaded PDF.
-Just type your question below and click *Submit*.
-""")
-user_input = st.text_input("Enter a prompt")
+# st.header("LangChain HUGGINGFACE(sentence-transformers/all-MiniLM-L6-v2) EMBEDDER GROK Demo")
+# st.markdown("""
+# Welcome! This tool answers medical-related questions using context from the uploaded PDF.
+# Just type your question below and click *Submit*.
+# """)
+# user_input = st.text_input("Enter a prompt")
 
-if st.button("Generate"):
-    response = chain.invoke(user_input)
-    st.write(f"RESPONSE : {response}")
-    st.write()
-    st.write()
-    st.write(f"========THE RELEVANT TEXT RETRIEVED FOR THIS PROMPTS ARE ===================:")
-    st.write(agg_func(retriever.invoke(user_input)))
+# if st.button("Generate"):
+#     response = chain.invoke(user_input)
+#     st.write(f"RESPONSE : {response}")
+#     st.write()
+#     st.write()
+#     st.write(f"========THE RELEVANT TEXT RETRIEVED FOR THIS PROMPTS ARE ===================:")
+#     st.write(agg_func(retriever.invoke(user_input)))
 

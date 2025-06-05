@@ -60,7 +60,7 @@ llm = ChatOpenAI(
 # Initialize Pinecone client (optional, only if you need to manage indexes directly)
 pc = Pinecone(api_key=pinecone_api_key)
 embedding_dimension = 784
-index_name = "rhl-project-3"
+index_name = "openai-embedder-openai-llm"
 # embedding_dimension = len(embedding_oai.embed_query("Hello world"))
 # pc.create_index(
 #     name=index_name,
@@ -90,10 +90,21 @@ arr=retriever.invoke('what are indications for Continuous positive airway pressu
 
 # """ CHAINS"""
 print("TEST 4")
-
 prompt = PromptTemplate(
-    input_variables=["context","question"],
-    template="You are a helpful assistant answering an exam question. Use only this information: {context}\nDo not use external knowledge. Do not mention, describe, or reference the information's content, focus, or origin in your response. Answer this question in ~100 words only if the information is directly relevant: `{question}`\nIf the question is unrelated, reply only: 'I have no information on this topic'. Do not explain why the question is unrelated.""You are a helpful assistant answering an exam question. Use only this information: {context}\nDo not use any external knowledge or mention where the information comes from. Answer this question in ~100 words if the information is relevant: `{question}`\nIf the question is unrelated, reply only: 'I have no information on this topic'."
+    input_variables=["context", "question"],
+    template="""Please find the context: {context} and question: {question} 
+You are a document-based AI assistant. Your sole function is to provide information contained within the files provided in the Document store and its respective chunks. Confine your responses strictly to the data available in the documents. Avoid fetching data from external sources.
+
+Response Instructions:
+1. If a query cannot be answered based on the information in the documents, respond clearly that it is out of scope. Do not generate content or search for data beyond the provided documents.
+1.1 Never in any circumstance refer to any other source other than the content provided in the documents.
+1.2 Answer as if you're a professional medical advisor, base your response on the information provided in the documents but dont mention this in the answer.
+2. When the query is relevant but unclear, ask up to two follow-up questions, offering a maximum of three concise options (5 words or less each) only if necessary, preferably skip if not useful.
+3. Paraphrase, summarize, and offer different response formats while maintaining factual accuracy.
+4. Limit responses to necessary word limit . Use a helpful and compassionate tone.
+5. Handle greetings appropriately.
+6. Answer "Yes/No" or in a "Small paragraph" format based on the user's request. If unable to understand the query after two attempts, respond with "null."
+7. Do not use special characters while providing the content."""
 )
 parser = StrOutputParser()
 
@@ -112,22 +123,45 @@ chain = parallel_chain | prompt | llm | parser
 #     result = chain.invoke(query)
 #     print(result)
 
+
+arr= ['Can you tell me the indications of magnesium sulfate administration in pregnant women for fetal neuroprotection?',
+'Can you tell me the indications for CPAP in a newborn?When is administration of antenatal corticosteroid therapy for pregnant women recommended? What is the importance of antenatal corticosteroid therapy?',
+,'What is the recommendation of plastic wrapping for prevention of hypothermia in preterm neonates?',
+'What is the dose of vitamin K that should be given as essential newborn care at birth for preterm baby. I mean do we give the same dose of vitamin K for term and preterm neonates?',
+'A lactating mother has one sided breast redness, pain, and swelling. Can she continue breastfeeding her newborn baby?',
+'A 3 days old newborn presented with failure to suck the breast otherwise unremarkable. I was wondering if I should start antibiotics for suspected sepsis?',
+'A 2 days old neonate who has yellowish discoloration of the skin brought to our hospital. How do I treat him?',
+'My newborn baby has purulent discharge from the eyes. Is it serious? What should I do?',
+'When should I bath my newborn baby?',
+'A mother who gave birth 2 days ago has difficulty providing adequate amount of expressed breast milk to her newborn. How should I proceed on supporting and feeding the newborn?',
+'In our setup, we don’t have a readymade 10% dextrose IV fluid; but we have 40% and 5% dextrose. How can I prepare the required amount of 10% dextrose from the available fluids']
+
+for i in arr:
+    result = chain.invoke(i)
+    
+    print("==========================================")
+    print(f"QUERY IS {i}")
+    print()
+    print(f"RESPONSE IS {result}")
+    print()
+    print()
+
 # """ UI  """
 
 
-st.header("LangChain GPT EMBEDDER GROk AI")
-st.markdown("""
-Welcome! This tool answers medical-related questions using context from the uploaded PDF.
-Just type your question below and click *Submit*.
-""")
-user_input = st.text_input("Enter a prompt")
+# st.header("LangChain GPT EMBEDDER GROk AI")
+# st.markdown("""
+# Welcome! This tool answers medical-related questions using context from the uploaded PDF.
+# Just type your question below and click *Submit*.
+# """)
+# user_input = st.text_input("Enter a prompt")
 
 
-if st.button("Generate"):
-    response = chain.invoke(user_input)
-    st.write(f"RESPONSE : {response}")
-    st.write()
-    st.write()
-    st.write(f"========THE RELEVANT TEXT RETRIEVED FOR THIS PROMPTS ARE ===================:")
-    st.write(agg_func(retriever.invoke(user_input)))
+# if st.button("Generate"):
+#     response = chain.invoke(user_input)
+#     st.write(f"RESPONSE : {response}")
+#     st.write()
+#     st.write()
+#     st.write(f"========THE RELEVANT TEXT RETRIEVED FOR THIS PROMPTS ARE ===================:")
+#     st.write(agg_func(retriever.invoke(user_input)))
 
