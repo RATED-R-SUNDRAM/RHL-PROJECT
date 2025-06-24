@@ -21,7 +21,7 @@ grok_api_key = st.secrets["GROK_API_KEY"]
 
 # Embedding model setup
 embedding_model_name = "sentence-transformers/all-MiniLM-L6-v2"
-embedding_hf = HuggingFaceEmbeddings(model_name=embedding_model_name, model_kwargs={"device": "cpu"})
+embedding_hf = HuggingFaceEmbeddings(model_name=embedding_model_name)
 
 # LLM configuration
 base_llm_config = {
